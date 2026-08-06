@@ -55,39 +55,34 @@ export default function VendedoresPage() {
 
   const crear = useMutation({
     mutationFn: async (valores: FormValores) => {
-      // Nota: para crear usuarios de Auth desde el cliente se requiere que el
-      // proyecto tenga habilitado el registro público, o mover esta llamada
-      // a una Edge Function con la service_role key (recomendado en producción).
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: valores.correo,
-        password: valores.contrasena,
-        options: { data: { nombre_completo: valores.nombre_completo } }
-      });
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('No se pudo crear el usuario.');
-
+      // Nota: la creación del usuario ahora pasa por la Edge Function
+      // "crear-vendedor", que valida en el servidor que quien llama sea
+      // administrador o supervisor antes de crear la cuenta (usando la
+      // service_role key). No requiere registro público habilitado.
       let foto_url: string | null = null;
       if (foto) {
-        const ruta = `${authData.user.id}/${Date.now()}-${foto.name}`;
+        const ruta = `${Date.now()}-${foto.name}`;
         const { error: subidaError } = await supabase.storage.from('vendedores').upload(ruta, foto);
         if (!subidaError) {
           foto_url = supabase.storage.from('vendedores').getPublicUrl(ruta).data.publicUrl;
         }
       }
 
-      const { error: perfilError } = await supabase
-        .from('perfiles')
-        .update({
-          rol: 'vendedor',
+      const { data, error } = await supabase.functions.invoke('crear-vendedor', {
+        body: {
+          email: valores.correo,
+          password: valores.contrasena,
           nombre_completo: valores.nombre_completo,
-          cedula: valores.cedula || null,
-          celular: valores.celular || null,
-          direccion: valores.direccion || null,
+          cedula: valores.cedula,
+          celular: valores.celular,
+          direccion: valores.direccion,
           ruta_id: valores.ruta_id || null,
           foto_url
-        })
-        .eq('id', authData.user.id);
-      if (perfilError) throw perfilError;
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendedores'] });
