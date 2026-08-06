@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import AppShell from '@/components/layout/AppShell';
 import RutaProtegida from '@/features/auth/RutaProtegida';
+import RequiereRol from '@/features/auth/RequiereRol';
 import LoginPage from '@/features/auth/LoginPage';
 
 import DashboardPage from '@/features/dashboard/DashboardPage';
@@ -28,7 +29,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<DashboardPage />} />
 
-          <Route element={<RutaProtegida rolesPermitidos={['administrador', 'supervisor']} />}>
+          <Route element={<RequiereRol roles={['administrador', 'supervisor']} />}>
             <Route path="/rutas" element={<RutasPage />} />
             <Route path="/vendedores" element={<VendedoresPage />} />
             <Route path="/inventario" element={<InventarioPage />} />
@@ -45,13 +46,13 @@ export default function App() {
 
           <Route path="/cobros" element={<CobrosPage />} />
 
-          <Route element={<RutaProtegida rolesPermitidos={['vendedor']} />}>
+          <Route element={<RequiereRol roles={['vendedor']} />}>
             <Route path="/jornada" element={<JornadaPage />} />
           </Route>
 
           <Route path="/notificaciones" element={<NotificacionesPage />} />
 
-          <Route element={<RutaProtegida rolesPermitidos={['administrador']} />}>
+          <Route element={<RequiereRol roles={['administrador']} />}>
             <Route path="/auditoria" element={<AuditoriaPage />} />
           </Route>
         </Route>
