@@ -48,7 +48,7 @@ export default function NotificacionesPage() {
       ) : (
         <div className="space-y-2">
           {notificaciones?.map((n) => {
-            const Icono = iconos[n.tipo];
+            const Icono = iconos[n.tipo as TipoNotificacion];
             return (
               <div key={n.id} className={`card p-4 flex items-start gap-3 ${n.leida ? 'opacity-60' : ''}`}>
                 <div className="h-9 w-9 rounded-lg bg-accent-500/15 text-accent-400 flex items-center justify-center shrink-0">
